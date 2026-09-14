@@ -191,6 +191,44 @@
     footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--muted);font-size:13px}
     .footer-grid{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
     .legal{max-width:800px;margin-top:18px;font-size:12px;color:#7f8da2}
+
+    .copy-phone{
+      cursor:pointer;
+      position:relative;
+    }
+    .copy-phone:hover{
+      text-decoration:underline;
+      text-underline-offset:4px;
+    }
+    .copy-hint{
+      display:block;
+      margin-top:4px;
+      font-size:11px;
+      font-weight:600;
+      color:var(--muted);
+    }
+    .copy-toast{
+      position:fixed;
+      z-index:100;
+      left:50%;
+      bottom:26px;
+      transform:translate(-50%,20px);
+      padding:12px 18px;
+      border-radius:12px;
+      background:#f7f9fc;
+      color:#07101f;
+      font-weight:850;
+      font-size:14px;
+      opacity:0;
+      pointer-events:none;
+      transition:.22s ease;
+      box-shadow:0 14px 38px rgba(0,0,0,.28);
+    }
+    .copy-toast.show{
+      opacity:1;
+      transform:translate(-50%,0);
+    }
+
     .mobile-call{display:none}
     @media(max-width:920px){
       .navlinks{display:none}
@@ -261,7 +299,7 @@
         <a href="#how">Как работаем</a>
         <a href="#registry">Реестр 2027</a>
       </nav>
-      <a class="phone desktop" href="tel:+79205185656">+7 920 518-56-56</a>
+      <a class="phone desktop copy-phone" href="#" data-copy-phone title="Нажмите, чтобы скопировать номер">+7 920 518-56-56</a>
     </div>
   </header>
 
@@ -462,7 +500,7 @@
           <h2>Расскажите, как вы возите. Мы соберём схему под вас.</h2>
           <p>Сколько машин, кто водители, какие рейсы и чем пользуетесь сейчас. После этого станет понятно, что нужно настроить сразу, а что можно подключить позже.</p>
         </div>
-        <a class="cta-phone" href="tel:+79205185656"><small>Позвонить</small>+7 920 518-56-56</a>
+        <a class="cta-phone copy-phone" href="#" data-copy-phone title="Нажмите, чтобы скопировать номер"><small>Телефон</small>+7 920 518-56-56<span class="copy-hint">нажмите, чтобы скопировать</span></a>
       </div>
     </div>
   </main>
@@ -471,7 +509,7 @@
     <div class="wrap">
       <div class="footer-grid">
         <div><strong style="color:#fff">АВТОТРАНС</strong><br>Комплексное сопровождение перевозчиков</div>
-        <div>Липецк и Липецкая область<br><a href="tel:+79205185656" style="color:#fff">+7 920 518-56-56</a></div>
+        <div>Липецк и Липецкая область<br><a href="#" class="copy-phone" data-copy-phone title="Нажмите, чтобы скопировать номер" style="color:#fff">+7 920 518-56-56</a></div>
       </div>
       <div class="legal">
         Информация на сайте носит общий информационный характер. Конкретный перечень обязательных действий зависит от вида перевозок, статуса перевозчика, транспорта и схемы договорных отношений. Действия, требующие личной электронной подписи конкретного участника, выполняются этим участником либо надлежащим образом уполномоченным лицом в установленном порядке. *Формат и время поддержки согласовываются договором.
@@ -480,5 +518,50 @@
   </footer>
 
   <a class="mobile-call" href="tel:+79205185656">☎ Позвонить: +7 920 518-56-56</a>
+
+  <div class="copy-toast" id="copyToast" role="status" aria-live="polite">Номер скопирован: +7 920 518-56-56</div>
+  <script>
+    (function () {
+      const phoneToCopy = '+79205185656';
+      const toast = document.getElementById('copyToast');
+      let toastTimer;
+
+      function showToast() {
+        clearTimeout(toastTimer);
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+      }
+
+      function fallbackCopy(text) {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand('copy');
+        document.body.removeChild(area);
+      }
+
+      document.querySelectorAll('[data-copy-phone]').forEach(function (el) {
+        el.addEventListener('click', async function (event) {
+          event.preventDefault();
+          try {
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(phoneToCopy);
+            } else {
+              fallbackCopy(phoneToCopy);
+            }
+            showToast();
+          } catch (e) {
+            fallbackCopy(phoneToCopy);
+            showToast();
+          }
+        });
+      });
+    })();
+  </script>
+
 </body>
 </html>
