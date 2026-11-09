@@ -99,7 +99,7 @@ async def safe_read_xml(file:UploadFile):
     return blob
 
 @app.post('/api/etrn/preview')
-async def etrn_preview(request:Request,xml:UploadFile=File(...),order:UploadFile=File(...),carrier:UploadFile=File(...)):
+async def etrn_preview(request:Request,xml:UploadFile=File(...),order:UploadFile=File(...),carrier:UploadFile=File(...),customer_source:str=Form('client')):
     throttle(request)
     try:
         source=await safe_read_xml(xml)
@@ -107,7 +107,7 @@ async def etrn_preview(request:Request,xml:UploadFile=File(...),order:UploadFile
         y=await safe_read(carrier)
         a=pdf_order(x)
         b=pdf_carrier(y)
-        return JSONResponse({'data':preview_etrn(source,a,b),'notes':a.get('notes',[])+b.get('notes',[])})
+        return JSONResponse({'data':preview_etrn(source,a,b,customer_source),'notes':a.get('notes',[])+b.get('notes',[])})
     except ValueError as exc:
         raise HTTPException(status_code=422,detail=str(exc))
 

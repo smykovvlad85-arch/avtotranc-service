@@ -6,8 +6,16 @@ function notice(message,error=false){const x=$('#toast');x.textContent=message;x
 for(const [sel,id] of [['#base-xml','#xml-name'],['#order-file','#order-name'],['#carrier-file','#carrier-name']]){
   $(sel).addEventListener('change',e=>{$(id).textContent=e.target.files[0]?.name||'Файл не выбран';lastPreview=null;$('#etrn-editor').classList.add('hidden');$('#etrn-empty').classList.remove('hidden')});
 }
+$('#customer-source').addEventListener('change',()=>{
+ lastPreview=null;$('#etrn-editor').classList.add('hidden');$('#etrn-empty').classList.remove('hidden');
+});
 function showPreview(result){
  const d=result.data;lastPreview=d;
+ const party=d.customer||{};
+ const chosen=d.customer_source==='shipper'?'Грузоотправитель':'Клиент';
+ const customerPanel=$('#customer-result');
+ customerPanel.classList.remove('hidden');
+ customerPanel.innerHTML=`<b>Заказчик: ${esc(chosen)} из поручения</b><div>${esc(party.name||'Организация не распознана')}</div><small>ИНН: ${esc(party.inn||'не найден')} · КПП: ${esc(party.kpp||'не найден')}</small><p>${d.customer_field_ready?'В XML найден раздел «Заказчик»: пустые реквизиты можно дополнить.':'В этом XML отдельный раздел «Заказчик» пока недоступен. Реквизиты показаны для сверки; исходные поля не меняются.'}</p>`;
  $('#etrn-stats').textContent=`Уже заполнено и защищено: ${d.filled} полей. Доступно для дополнения: ${d.missing} полей. Номер поручения: ${d.order_number||'не определён'}.`;
  const differences=d.rows.filter(r=>r.conflict);
  const problems=[...(d.warnings||[]),...(result.notes||[])];
@@ -23,7 +31,7 @@ $('#preview-btn').addEventListener('click',async()=>{
  if(!xml||!pdf||!carrier){notice('Выбери XML из Контура и оба PDF',true);return}
  const b=$('#preview-btn');b.disabled=true;b.textContent='Проверяем документы…';
  try{
-  const f=new FormData();f.append('xml',xml);f.append('order',pdf);f.append('carrier',carrier);
+  const f=new FormData();f.append('xml',xml);f.append('order',pdf);f.append('carrier',carrier);f.append('customer_source',$('#customer-source').value);
   const response=await fetch('/api/etrn/preview',{method:'POST',body:f,cache:'no-store'});
   const obj=await response.json();if(!response.ok)throw Error(obj.detail||'Ошибка обработки');
   showPreview(obj);notice('Заполненные поля защищены. Проверь предложенные дополнения.');

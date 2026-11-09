@@ -24,6 +24,9 @@ class Field:
 FIELDS = (
     Field('order_number','Номер заказа-заявки','.//СодИнфГО','НомЗак','order_number'),
     Field('order_date','Дата заказа-заявки','.//СодИнфГО','ДатаЗак','order_date','date'),
+    Field('customer_name','Заказчик — организация','.//СвЗак/РекИдентЗак/ИдСв/СвЮЛУч','НаимОрг','customer_name'),
+    Field('customer_inn','ИНН заказчика','.//СвЗак/РекИдентЗак/ИдСв/СвЮЛУч','ИННЮЛ','customer_inn','inn10'),
+    Field('customer_kpp','КПП заказчика','.//СвЗак/РекИдентЗак/ИдСв/СвЮЛУч','КПП','customer_kpp','kpp9'),
     Field('etrn_number','Номер ЭТрН','.//СодИнфГО','НомерТрН','etrn_number'),
     Field('cargo_name','Наименование груза','.//СвГруз/ОпГруз','НаимГруз','cargo_name'),
     Field('cargo_places','Грузовых мест','.//СвГруз/ОпГруз','КолМестГр','places','int'),
@@ -92,14 +95,19 @@ def as_comparable(value, kind):
     if kind in ('number','int'):
         try: return Decimal(val.replace(' ','').replace(',','.'))
         except InvalidOperation:return val
-    if kind in ('inn12','ogrnip','phone'):
+    if kind in ('inn10','kpp9','inn12','ogrnip','phone'):
         return re.sub(r'\D','',val)
     return re.sub(r'\s+',' ',val).casefold()
 
 
-def preview_etrn(xml_bytes, order_data, carrier_data):
+def preview_etrn(xml_bytes, order_data, carrier_data, customer_source='client'):
+    if customer_source not in ('client','shipper'):
+        raise ValueError('Источник заказчика: выбери «Клиент» или «Грузоотправитель»')
     tree=parse_base(xml_bytes)
     proposals=candidates_from_pdf(order_data,carrier_data)
+    party=(order_data.get('order_parties') or {}).get(customer_source) or {}
+    if party.get('type')=='organization' and party.get('name') and party.get('inn'):
+        proposals.update(customer_name=party.get('name',''),customer_inn=party.get('inn',''),customer_kpp=party.get('kpp',''))
     # Use the order number already present in XML. Only if blank, use PDF.
     _, source_order, source_order_exists = read_field(tree, FIELD_LOOKUP['order_number'])
     canonical_order = (source_order or '').strip() if source_order_exists else ''
@@ -121,6 +129,21 @@ def preview_etrn(xml_bytes, order_data, carrier_data):
     filled=sum(1 for r in rows if r['filled'])
     missing=sum(1 for r in rows if not r['filled'])
     warnings=[]
+    if not party.get('inn') or not party.get('name'):
+        warnings.append('В поручении не удалось достоверно распознать выбранного заказчика. Проверь реквизиты вручную.')
+    elif party.get('type')!='organization':
+        warnings.append('Выбранный заказчик не является юридическим лицом. Для ИП требуется отдельный XML-формат реквизитов; автоматическая подстановка отключена.')
+    exp_nodes=tree.xpath('.//СодИнфГО/СвГО')
+    forwarder_flag=exp_nodes[0].get('ГОЭксп','') if len(exp_nodes)==1 else ''
+    customer_nodes=tree.xpath('.//СодИнфГО/СвЗак')
+    if forwarder_flag=='0':
+        warnings.append('В исходном XML признак «Является экспедитором» выключен (ГОЭксп=0), поэтому раздел «Заказчик» отсутствует. Выбери нужный экспедиторский сценарий в Контуре и выгрузи обновлённый XML. Мы не меняем этот признак автоматически.')
+    elif forwarder_flag=='1' and not customer_nodes:
+        warnings.append('В XML включён признак экспедитора, но раздел «Заказчик» (СвЗак) не создан. Добавь его в Контуре и выгрузи XML заново.')
+    elif forwarder_flag=='1' and customer_nodes and not tree.xpath('.//СвЗак/РекИдентЗак/ИдСв/СвЮЛУч'):
+        warnings.append('В XML нет реквизитов заказчика-юридического лица в разделе «Заказчик». Тип и структуру участника нужно сначала выбрать в Контуре.')
+    if forwarder_flag=='1' and customer_nodes and not tree.xpath('.//СвЗак/ДогУслПер'):
+        warnings.append('В XML отсутствует обязательный договор с заказчиком (ДогУслПер). Укажи его в Контуре.')
     if any(r['conflict'] for r in rows):
         warnings.append('Данные PDF или номер поручения расходятся с уже заполненным XML. Существующие значения будут сохранены.')
     if any(r['id']=='etrn_number' and r['conflict'] for r in rows):
@@ -133,7 +156,8 @@ def preview_etrn(xml_bytes, order_data, carrier_data):
             break
     if tree.xpath('.//СвГП/РекИдентГП/ИдСв/СвИП[@ИННФЛ=""]'):
         warnings.append('Грузополучатель отмечен в XML как ИП с пустым ИНН. По PDF нельзя безопасно определить тип и реквизиты грузополучателя. Проверь в Контуре.')
-    return {'rows':rows,'filled':filled,'missing':missing,'warnings':warnings,'order_number':canonical_order}
+    return {'rows':rows,'filled':filled,'missing':missing,'warnings':warnings,'order_number':canonical_order,
+            'customer_source':customer_source, 'customer':party, 'customer_field_ready':bool(forwarder_flag=='1' and tree.xpath('.//СвЗак/РекИдентЗак/ИдСв/СвЮЛУч'))}
 
 
 def validate(field, value):
@@ -149,6 +173,10 @@ def validate(field, value):
             raise ValueError(f'Неверное число: {field.label}')
     if kind=='date' and not re.fullmatch(r'\d\d\.\d\d\.\d{4}',value):
         raise ValueError(f'Неверная дата: {field.label}')
+    if kind=='inn10' and not re.fullmatch(r'\d{10}',value):
+        raise ValueError(f'Неверный ИНН юрлица: {field.label}')
+    if kind=='kpp9' and not re.fullmatch(r'\d{9}',value):
+        raise ValueError(f'Неверный КПП: {field.label}')
     if kind=='inn12' and not re.fullmatch(r'\d{12}',value):
         raise ValueError(f'Неверный ИНН: {field.label}')
     if kind=='ogrnip' and not re.fullmatch(r'\d{15}',value):

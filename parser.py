@@ -50,6 +50,38 @@ def one(pattern, txt, flags=re.I|re.S, group=1):
     return (m.group(group).strip() if m else '')
 
 
+def extract_order_parties(data):
+    """Read client and cargo shipper separately from left-column sections.
+
+    Never substitute a neighboring party if source details are not found.
+    """
+    parties={}
+    with fitz.open(stream=data, filetype='pdf') as pdf:
+        page=pdf[0]
+        crop_right=page.rect.width / 2
+        def section(label, next_label):
+            labels=[r for r in page.search_for(label) if r.x0 < crop_right and r.y0 < 300]
+            ends=[r for r in page.search_for(next_label) if r.y0 < 300]
+            if not labels or not ends: return ''
+            top=labels[0].y1 + 0.3
+            bottoms=[r.y0 for r in ends if r.y0 > top]
+            if not bottoms: return ''
+            return normalize_space(page.get_text('text', clip=fitz.Rect(0,top,crop_right,min(bottoms)-0.3)))
+        blocks={
+            'client':section('Клиент','Сведения о грузе, готовом к отправке'),
+            'shipper':section('Грузоотправитель','Готовность груза к отгрузке:'),
+        }
+    for key,raw in blocks.items():
+        inn=one(r'\bИНН\s*:\s*(\d{10}|\d{12})\b',raw)
+        name=normalize_space(re.split(r',?\s*ИНН\s*:',raw,maxsplit=1,flags=re.I)[0]).strip(' ,') if inn else ''
+        kpp=one(r'\bКПП\s*:\s*(\d{9})\b',raw)
+        address=one(r'\bадрес\s*:\s*(.*?)(?:,?\s*тел\.\s*:|$)',raw)
+        phone=one(r'\bтел\.\s*:\s*([+\d()\s-]+)',raw)
+        parties[key]={'name':name,'inn':inn,'kpp':kpp,'address':normalize_space(address),
+                      'phone':normalize_space(phone),'type':'organization' if len(inn)==10 else ('individual' if len(inn)==12 else '')}
+    return parties
+
+
 def pdf_order(data):
     text, sorted_text = read_pdf_bytes(data)
     head = text[:4500]
@@ -95,6 +127,7 @@ def pdf_order(data):
         'places':str(places),'gross_kg':num(gross),'net_kg':num(net),
         'volume_m3':num(volume,3) if volume is not None else '',
         'cargo_name':cargo,'notes':notes,'party_count':len(parties),
+        'order_parties':extract_order_parties(data),
     }
 
 

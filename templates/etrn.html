@@ -29,11 +29,20 @@
         <label class="dropzone"><input type="file" id="order-file" accept=".pdf,application/pdf"><span class="file-icon">▤</span><span class="drop-title">Поручение экспедитору</span><span class="drop-helper">PDF с грузом и маршрутом</span><span class="file-name" id="order-name">Файл не выбран</span></label>
         <label class="dropzone"><input type="file" id="carrier-file" accept=".pdf,application/pdf"><span class="file-icon">▥</span><span class="drop-title">Заявка перевозчику</span><span class="drop-helper">PDF с водителем и транспортом</span><span class="file-name" id="carrier-name">Файл не выбран</span></label>
       </div>
+      <div class="customer-source-panel">
+        <label for="customer-source">Заказчик в ЭТрН — откуда брать из поручения</label>
+        <select id="customer-source" aria-label="Источник реквизитов заказчика">
+          <option value="client">Клиент (по умолчанию)</option>
+          <option value="shipper">Грузоотправитель</option>
+        </select>
+        <p>Заполненные реквизиты из XML не заменяем. Если раздел «Заказчик» отсутствует, покажем реквизиты для проверки, но не станем создавать неподтверждённую структуру.</p>
+      </div>
       <div class="upload-bottom"><div class="privacy">♧ <span>Документы не сохраняются на сервере. Исходный XML не меняется.</span></div><button class="primary-button" id="preview-btn" type="button">Проверить пустые поля <span>→</span></button></div>
     </section>
     <section class="editor-panel hidden" id="etrn-editor">
       <div class="section-heading"><div><span class="number">02</span><h2>Проверка дополнений</h2></div><p>Заполненные поля заблокированы</p></div>
       <div class="safe-banner" id="etrn-stats"></div>
+      <div class="customer-result hidden" id="customer-result"></div>
       <div class="safe-conflicts hidden" id="etrn-warnings"></div>
       <form id="etrn-form">
         <div class="safe-fields" id="etrn-fields"></div>
