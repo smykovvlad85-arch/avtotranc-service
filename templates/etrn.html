@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101e2a">
+  <title>ЭТРН из заявки · Автотранс-Логистика</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar"><div class="topbar-inner">
+    <div class="brand"><span class="brand-logo">A<span class="brand-corner">↗</span></span><span class="brand-name">АВТОТРАНС<span class="brand-sub">ЛОГИСТИКА</span></span></div>
+    <div class="top-actions"><span class="top-tag"><i></i> Документы ЭДО</span><span class="top-version">ЭТрН / 5.01</span></div>
+  </div></header>
+  <main class="shell">
+    <nav class="section-tabs" aria-label="Разделы сервиса">
+      <a class="section-tab" href="/">Заявка перевозчику</a>
+      <a class="section-tab is-active" href="/etrn" aria-current="page">ЭТРН из заявки</a>
+    </nav>
+    <section class="hero"><div class="eyebrow"><span class="accent-line"></span> БЕЗОПАСНОЕ ДОЗАПОЛНЕНИЕ</div>
+      <div class="hero-row"><div>
+        <h1>ЭТРН <span>из заявки</span></h1>
+        <p class="hero-copy">Загрузи XML, полученный из уже созданной ЭТрН в Контуре, и два PDF. Заполненные поля защищены от изменений — мы предлагаем дополнения только для пустых.</p>
+      </div><div class="flow-steps"><div><b>01</b><span>XML + PDF</span></div><i>→</i><div><b>02</b><span>Сверка</span></div><i>→</i><div><b>03</b><span>Дополнить</span></div></div></div>
+    </section>
+    <section class="upload-panel"><div class="section-heading"><div><span class="number">01</span><h2>Исходные документы</h2></div><p>Исходный XML обязателен</p></div>
+      <div class="upload-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+        <label class="dropzone"><input type="file" id="base-xml" accept=".xml,application/xml,text/xml"><span class="file-icon">⌘</span><span class="drop-title">XML ЭТрН из Контура</span><span class="drop-helper">Основной документ — его значения сохраняем</span><span class="file-name" id="xml-name">Файл не выбран</span></label>
+        <label class="dropzone"><input type="file" id="order-file" accept=".pdf,application/pdf"><span class="file-icon">▤</span><span class="drop-title">Поручение экспедитору</span><span class="drop-helper">PDF с грузом и маршрутом</span><span class="file-name" id="order-name">Файл не выбран</span></label>
+        <label class="dropzone"><input type="file" id="carrier-file" accept=".pdf,application/pdf"><span class="file-icon">▥</span><span class="drop-title">Заявка перевозчику</span><span class="drop-helper">PDF с водителем и транспортом</span><span class="file-name" id="carrier-name">Файл не выбран</span></label>
+      </div>
+      <div class="upload-bottom"><div class="privacy">♧ <span>Документы не сохраняются на сервере. Исходный XML не меняется.</span></div><button class="primary-button" id="preview-btn" type="button">Проверить пустые поля <span>→</span></button></div>
+    </section>
+    <section class="editor-panel hidden" id="etrn-editor">
+      <div class="section-heading"><div><span class="number">02</span><h2>Проверка дополнений</h2></div><p>Заполненные поля заблокированы</p></div>
+      <div class="safe-banner" id="etrn-stats"></div>
+      <div class="safe-conflicts hidden" id="etrn-warnings"></div>
+      <form id="etrn-form">
+        <div class="safe-fields" id="etrn-fields"></div>
+        <div class="editor-bottom"><p>Выгрузка не изменяет документ в Контуре. При загрузке XML сначала проверь тестовый черновик: импорт может заменять поля или создавать новую накладную.</p><button class="primary-button" id="etrn-submit" type="submit">Скачать дополненный XML <span>↓</span></button></div>
+      </form>
+    </section>
+    <div class="empty-state" id="etrn-empty"><div class="empty-icon">▤</div><div><b>Здесь появятся незаполненные поля ЭТрН</b><p>Загрузи XML и два PDF для сравнения</p></div></div>
+  </main>
+  <footer><div class="footer-content"><div>АВТОТРАНС-ЛОГИСТИКА <span>· защищённое дополнение XML</span></div><div>Контур.Логистика · ON_TRNACLGROT v5.01</div></div></footer>
+  <div class="toast hidden" id="toast" role="alert"></div>
+  <script src="/static/etrn.js" defer></script>
+</body></html>
