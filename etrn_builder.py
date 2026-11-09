@@ -24,7 +24,7 @@ class Field:
 FIELDS = (
     Field('order_number','Номер заказа-заявки','.//СодИнфГО','НомЗак','order_number'),
     Field('order_date','Дата заказа-заявки','.//СодИнфГО','ДатаЗак','order_date','date'),
-    Field('etrn_number','Номер ЭТрН','.//СодИнфГО','НомерТрН'),
+    Field('etrn_number','Номер ЭТрН','.//СодИнфГО','НомерТрН','etrn_number'),
     Field('cargo_name','Наименование груза','.//СвГруз/ОпГруз','НаимГруз','cargo_name'),
     Field('cargo_places','Грузовых мест','.//СвГруз/ОпГруз','КолМестГр','places','int'),
     Field('cargo_gross','Вес брутто, кг','.//СвГруз/ОпГруз/ПлМасГруз','МасБрутЗнач','gross_kg','number'),
@@ -100,6 +100,11 @@ def as_comparable(value, kind):
 def preview_etrn(xml_bytes, order_data, carrier_data):
     tree=parse_base(xml_bytes)
     proposals=candidates_from_pdf(order_data,carrier_data)
+    # Use the order number already present in XML. Only if blank, use PDF.
+    _, source_order, source_order_exists = read_field(tree, FIELD_LOOKUP['order_number'])
+    canonical_order = (source_order or '').strip() if source_order_exists else ''
+    canonical_order = canonical_order or str(order_data.get('order_number','')).strip()
+    proposals['etrn_number'] = canonical_order
     rows=[]
     for f in FIELDS:
         el, original, exists=read_field(tree,f)
@@ -117,7 +122,9 @@ def preview_etrn(xml_bytes, order_data, carrier_data):
     missing=sum(1 for r in rows if not r['filled'])
     warnings=[]
     if any(r['conflict'] for r in rows):
-        warnings.append('Данные PDF расходятся с уже заполненным XML. Существующие значения будут сохранены.')
+        warnings.append('Данные PDF или номер поручения расходятся с уже заполненным XML. Существующие значения будут сохранены.')
+    if any(r['id']=='etrn_number' and r['conflict'] for r in rows):
+        warnings.append('Номер ЭТрН должен совпадать с номером поручения. Исправь расхождение в Контуре: заполненное поле сервис не заменяет.')
     if any(r['id'] in ('vehicle_tons','vehicle_capacity') and r['suggestion'] for r in rows):
         warnings.append('Тоннаж и кубатура из договора — требование к машине, не подтверждённые характеристики фактического ТС. Проверь вручную.')
     for node in tree.xpath('.//СвПогруз'):
@@ -126,7 +133,7 @@ def preview_etrn(xml_bytes, order_data, carrier_data):
             break
     if tree.xpath('.//СвГП/РекИдентГП/ИдСв/СвИП[@ИННФЛ=""]'):
         warnings.append('Грузополучатель отмечен в XML как ИП с пустым ИНН. По PDF нельзя безопасно определить тип и реквизиты грузополучателя. Проверь в Контуре.')
-    return {'rows':rows,'filled':filled,'missing':missing,'warnings':warnings,'order_number':order_data.get('order_number','')}
+    return {'rows':rows,'filled':filled,'missing':missing,'warnings':warnings,'order_number':canonical_order}
 
 
 def validate(field, value):
@@ -154,6 +161,18 @@ def supplement_etrn(xml_bytes:bytes, updates:dict):
     tree=parse_base(xml_bytes)
     if not isinstance(updates,dict) or len(updates)>len(FIELDS):
         raise ValueError('Недопустимый набор изменений')
+    updates=dict(updates)
+    _, original_order, _ = read_field(tree, FIELD_LOOKUP['order_number'])
+    _, original_etrn, _ = read_field(tree, FIELD_LOOKUP['etrn_number'])
+    final_order = (original_order or '').strip() or str(updates.get('order_number') or '').strip()
+    if final_order:
+        if (original_etrn or '').strip() and (original_etrn or '').strip() != final_order:
+            raise ValueError('Номер ЭТрН уже заполнен и отличается от номера поручения. Исправь его в Контуре, чтобы не перезаписывать исходные данные.')
+        if not (original_etrn or '').strip():
+            supplied_etrn = str(updates.get('etrn_number') or '').strip()
+            if supplied_etrn and supplied_etrn != final_order:
+                raise ValueError('Номер ЭТрН должен совпадать с номером поручения: '+final_order)
+            updates['etrn_number']=final_order
     original_nonblank={}
     for el in tree.iter():
         path=tree.getpath(el)
