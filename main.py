@@ -51,29 +51,6 @@ async def index(request:Request):
 async def etrn_page(request:Request):
     return templates.TemplateResponse(request,'etrn.html')
 
-@app.get('/sign-order',response_class=HTMLResponse)
-async def sign_order_page(request:Request):
-    return templates.TemplateResponse(request,'sign_order.html')
-
-@app.get('/download/chrome-extension')
-async def download_chrome_extension():
-    """Download an unpacked-install ZIP. Only local static extension files."""
-    import io
-    from pathlib import Path
-    from zipfile import ZipFile, ZIP_DEFLATED
-    ext_dir = Path(__file__).parent / 'chrome-extension'
-    output = io.BytesIO()
-    with ZipFile(output, 'w', ZIP_DEFLATED) as z:
-        for name in ('manifest.json', 'popup.html', 'popup.css', 'popup.js'):
-            z.write(ext_dir / name, arcname='avtotrans-chrome/' + name)
-    return Response(
-        output.getvalue(),
-        media_type='application/zip',
-        headers={'Content-Disposition': 'attachment; filename="avtotrans-chrome-extension.zip"',
-                 'Cache-Control': 'no-store',
-                 'X-Content-Type-Options':'nosniff'}
-    )
-
 @app.get('/health')
 async def health():
     return {'ok':True}
