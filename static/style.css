@@ -16,3 +16,32 @@
 .customer-result b{font-size:13px;display:block}.customer-result div{font-size:14px;font-weight:700;margin-top:4px}
 .customer-result small,.customer-result p{font-size:12px;color:#576f77}.customer-result p{margin:8px 0 0}
 @media(max-width:520px){.customer-source-panel{padding:18px 17px}.customer-result{margin:18px 17px 0}}
+
+/* Forwarding-order T2 checklist. This is a manual helper; no automatic Kontur signing. */
+.fo-panel{margin-bottom:23px}
+.fo-content{padding:25px 31px 27px}
+.fo-intro{margin:0 0 21px;max-width:900px;color:#657985;font-size:13px;line-height:1.75}
+.fo-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.fo-field{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.fo-field>span{flex-basis:100%;font-size:13px;font-weight:700;color:#364f5f}
+.fo-field strong{color:#bf564c}
+.fo-field input{border:1px solid #d8e2e5;border-radius:8px;min-height:44px;padding:10px 12px;flex:1;min-width:170px;color:#1d3440}
+.fo-copy,.fo-secondary{border:1px solid #b9d3d2;background:#f4faf9;color:#13736c;border-radius:8px;cursor:pointer;padding:11px 16px;font-weight:700;font-size:12px}
+.fo-copy:hover,.fo-secondary:hover{background:#e4f6f1}
+.fo-local-warning,.fo-hint{font-size:12px;line-height:1.7;color:#7d8b96;margin:19px 0 0}
+.fo-count-label{display:flex;gap:15px;align-items:center;font-size:13px;font-weight:700;margin:0 0 16px}
+.fo-count-label input{width:86px;padding:9px 12px;border:1px solid #d8e2e5;border-radius:8px}
+.fo-routes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fo-route{border:1px solid var(--edge);border-radius:10px;display:grid;grid-template-columns:22px 1fr;gap:2px 10px;align-items:center;padding:13px 16px;cursor:pointer}
+.fo-route input{grid-row:span 2;width:17px;height:17px;accent-color:var(--accent)}
+.fo-route span{font-size:13px;font-weight:730}.fo-route small{font-size:11px;color:#81929c}
+.fo-route:has(input:checked){border-color:#b5ded7;background:#f2faf7}
+.fo-checks{font-size:13px;color:#364f5f;line-height:1.65;margin:9px 0}
+.fo-checks label{display:flex;gap:10px;align-items:baseline;cursor:pointer}
+.fo-checks input{accent-color:var(--accent)}
+.fo-summary{border:1px solid #dfe8e9;border-radius:9px;padding:14px 17px;background:#f5f8f9;color:#576978;font-size:13px;line-height:1.55;margin:18px 0}
+.fo-summary.is-ready{border-color:#b5ded7;background:#f0faf5;color:#37715c}
+.fo-actions{display:flex;gap:13px;align-items:center;flex-wrap:wrap}
+.fo-primary-link{display:inline-block;border-radius:8px;background:var(--accent);color:white;text-decoration:none;padding:13px 19px;font-size:13px;font-weight:750}
+.fo-primary-link:hover{background:var(--accent-hover)}
+@media(max-width:740px){.fo-fields,.fo-routes{grid-template-columns:1fr}.fo-content{padding:20px 18px}}

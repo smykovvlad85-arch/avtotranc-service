@@ -10,7 +10,7 @@
 <body>
   <header class="topbar"><div class="topbar-inner">
     <div class="brand"><span class="brand-logo">A<span class="brand-corner">↗</span></span><span class="brand-name">АВТОТРАНС<span class="brand-sub">ЛОГИСТИКА</span></span></div>
-    <div class="top-actions"><span class="top-tag"><i></i> Документы ЭДО</span><span class="top-version">Поручение</span></div>
+    <div class="top-actions"><span class="top-tag"><i></i> Документы ЭДО</span><span class="top-version">Поручение · Т2</span></div>
   </div></header>
   <main class="shell">
     <nav class="section-tabs" aria-label="Разделы сервиса">
@@ -19,19 +19,44 @@
       <a class="section-tab is-active" href="/sign-order" aria-current="page">Подписать поручение клиенту</a>
     </nav>
     <section class="hero">
-      <div class="eyebrow"><span class="accent-line"></span> ПОРУЧЕНИЕ ЭКСПЕДИТОРУ</div>
+      <div class="eyebrow"><span class="accent-line"></span> СОГЛАСОВАНИЕ · ТИТУЛ 2</div>
       <div class="hero-row"><div>
         <h1>Подписать поручение <span>клиенту</span></h1>
-        <p class="hero-copy">Отдельный раздел для работы с поручениями клиента. Сейчас вкладка создана; автоматизация подготовки документа и обмена с Контуром будет добавляться отдельно, без изменений действующих разделов.</p>
+        <p class="hero-copy">Здесь готовим сведения для ответа экспедитора на поручение клиента. В Контуре уже заполнены данные клиента и маршруты — их не меняем. Для этого титула не нужна загрузка XML.</p>
       </div></div>
     </section>
-    <section class="upload-panel" style="margin-bottom:45px">
-      <div class="section-heading"><div><span class="number">03</span><h2>Подписание поручения</h2></div><p>Раздел подготовлен</p></div>
-      <div style="padding:28px 31px;color:#536775;line-height:1.75;font-size:14px">
-        <p style="margin:0 0 14px"><b>Здесь будем готовить поручение клиента к подписанию.</b> Для настройки автоматического заполнения понадобится образец документа на нужном этапе обработки в Контуре.</p>
-        <p style="margin:0">Электронная подпись выполняется уполномоченным лицом в Контуре. Эта страница пока не отправляет документы и не подписывает их автоматически.</p>
+    <section class="upload-panel fo-panel">
+      <div class="section-heading"><div><span class="number">01</span><h2>Постоянные сведения экспедитора</h2></div><p>Копирование в Контур</p></div>
+      <div class="fo-content">
+        <p class="fo-intro">Для подписания ПЭ2 требуются номер записи в реестре экспедиторов «ГосЛог» и дата регистрации. Введи их один раз — сервис сохранит значения в этом браузере для следующих поручений.</p>
+        <div class="fo-fields">
+          <label class="fo-field"><span>Номер записи в реестре экспедиторов <strong>*</strong></span><input type="text" id="fo-reg" placeholder="GL-BXXX-XXXXX-XX/XXXXXXXX" autocomplete="off" maxlength="64"><button class="fo-copy" type="button" data-copy="fo-reg">Скопировать</button></label>
+          <label class="fo-field"><span>Дата регистрации <strong>*</strong></span><input type="text" id="fo-date" placeholder="ДД.ММ.ГГГГ" inputmode="numeric" maxlength="10" autocomplete="off"><button class="fo-copy" type="button" data-copy="fo-date">Скопировать</button></label>
+        </div>
+        <p class="fo-local-warning">Эти сведения сохраняются только в браузере на этом компьютере. На другом компьютере их потребуется ввести снова. Сервис не получает доступ к твоему личному кабинету или сертификату.</p>
+      </div>
+    </section>
+    <section class="upload-panel fo-panel">
+      <div class="section-heading"><div><span class="number">02</span><h2>Услуги по маршрутам</h2></div><p>Контроль заполнения</p></div>
+      <div class="fo-content">
+        <p class="fo-intro">В титуле клиента маршруты уже есть. В каждой услуге маршрута нужно выбрать исполнителя в Контуре — «Моя организация» или другого участника. Галочки ниже нужны только для контроля: они не изменяют данные Контура.</p>
+        <label class="fo-count-label">Маршрутов в поручении <input id="fo-count" type="number" min="1" max="30" step="1" value="5" inputmode="numeric"></label>
+        <div id="fo-routes" class="fo-routes"></div>
+        <p class="fo-hint">Если в маршруте несколько услуг, проверь исполнителя у <b>каждой услуги</b>. Отдельный раздел «Общие услуги» заполняется только при наличии таких услуг.</p>
+      </div>
+    </section>
+    <section class="upload-panel fo-panel">
+      <div class="section-heading"><div><span class="number">03</span><h2>Перейти к подписанию</h2></div><p>Подпись только в Контуре</p></div>
+      <div class="fo-content">
+        <div class="fo-checks"><label><input type="checkbox" id="fo-reviewed"> Я проверил сведения клиента, все маршруты и услуги в Контуре</label></div>
+        <div class="fo-checks"><label><input type="checkbox" id="fo-sign-ready"> Номер реестра, дата и исполнители указаны в самом Контуре</label></div>
+        <div class="fo-summary" id="fo-status" aria-live="polite"></div>
+        <div class="fo-actions"><button type="button" id="fo-checklist" class="fo-secondary">Скопировать памятку</button><a href="https://logist.kontur.ru/" target="_blank" rel="noopener noreferrer" class="fo-primary-link">Открыть Контур ↗</a></div>
+        <p class="fo-local-warning">Это помощник, а не интеграция с Контуром. Нажатие здесь не заполняет поля в Контуре, не сохраняет там черновик и не подписывает документ. Подпись КЭП выполняется лично в Контуре после проверки.</p>
       </div>
     </section>
   </main>
-  <footer><div class="footer-content"><div>АВТОТРАНС-ЛОГИСТИКА <span>· документы ЭДО</span></div><div>Контур.Логистика</div></div></footer>
+  <footer><div class="footer-content"><div>АВТОТРАНС-ЛОГИСТИКА <span>· рабочий помощник ПЭ2</span></div><div>Контур.Логистика · Поручение экспедитору</div></div></footer>
+  <div class="toast hidden" id="toast" role="status"></div>
+  <script src="/static/sign_order.js" defer></script>
 </body></html>
