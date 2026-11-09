@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101e2a">
+  <title>Автотранс · Контур XML</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="brand-logo">A<span class="brand-corner">↗</span></span><span class="brand-name">АВТОТРАНС<span class="brand-sub">ЛОГИСТИКА</span></span></div>
+      <div class="top-actions"><span class="top-tag"><i></i> Генератор заявок</span><span class="top-version">XML / 5.01</span></div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="eyebrow"><span class="accent-line"></span> ЭЛЕКТРОННЫЙ ДОКУМЕНТООБОРОТ</div>
+      <div class="hero-row"><div>
+        <h1>Из двух PDF <span>в готовую заявку</span></h1>
+        <p class="hero-copy">Загрузи поручение экспедитору и договор с перевозчиком. Мы соберём данные, ты проверишь — и получишь XML для Контур.Логистики.</p>
+      </div><div class="flow-steps" aria-label="Порядок работы">
+        <div><b>01</b><span>Загрузка</span></div><i>→</i><div><b>02</b><span>Проверка</span></div><i>→</i><div><b>03</b><span>XML</span></div>
+      </div></div>
+    </section>
+
+    <section class="upload-panel" id="upload-panel">
+      <div class="section-heading"><div><span class="number">01</span><h2>Исходные документы</h2></div><p>Принимаем текстовые PDF · до 15 МБ каждый</p></div>
+      <div class="upload-grid">
+        <label class="dropzone" id="drop-order">
+          <input type="file" id="order-file" accept="application/pdf,.pdf" aria-label="Поручение экспедитору">
+          <span class="file-icon">▤</span>
+          <span class="drop-title">Поручение экспедитору</span>
+          <span class="drop-helper">Перетащи PDF сюда или <em>выбери файл</em></span>
+          <span class="file-name" id="name-order">Файл не выбран</span>
+          <span class="file-meta">Из Контур.ЭДО, с весом и грузовыми местами</span>
+        </label>
+        <label class="dropzone" id="drop-carrier">
+          <input type="file" id="carrier-file" accept="application/pdf,.pdf" aria-label="Договор-заявка с перевозчиком">
+          <span class="file-icon">▥</span>
+          <span class="drop-title">Договор-заявка перевозчика</span>
+          <span class="drop-helper">Перетащи PDF сюда или <em>выбери файл</em></span>
+          <span class="file-name" id="name-carrier">Файл не выбран</span>
+          <span class="file-meta">Данные ИП, водителя, транспорта, оплаты</span>
+        </label>
+      </div>
+      <div class="upload-bottom"><div class="privacy">♧ <span>Файлы обрабатываются в памяти. Мы не создаём на сервере архив документов.</span></div><button class="primary-button" id="parse-btn" type="button">Распознать документы <span>→</span></button></div>
+    </section>
+
+    <section class="editor-panel hidden" id="editor-panel">
+      <div class="section-heading"><div><span class="number">02</span><h2>Проверка заявки</h2></div><p>Все поля можно изменить перед выгрузкой</p></div>
+      <div class="success-strip">✓ Данные извлечены из документов. Проверь отмеченные замечания и обязательные поля.</div>
+      <div id="warnings" class="warnings hidden"></div>
+      <div class="summary" id="summary"></div>
+      <form id="data-form" novalidate>
+        <div class="field-section"><h3><span class="section-dot"></span> Перевозка и маршрут</h3><div class="fields">
+          <label>Номер поручения <input name="order_number" required placeholder="БР000004647"></label>
+          <label>Дата поручения <input name="order_date" required placeholder="06.11.2026"></label>
+          <label class="wide">Адрес погрузки <input name="load_address" required placeholder="Область, город, улица, дом"></label>
+          <label class="wide">Адрес выгрузки <input name="unload_address" required placeholder="Область, город, улица, дом"></label>
+          <label>Дата и время подачи <input name="load_datetime" required placeholder="06.11.2026 09:00"></label>
+          <label>Часовой пояс <select name="load_tz"><option value="+03:00">UTC+03:00</option><option value="+04:00">UTC+04:00</option><option value="+02:00">UTC+02:00</option><option value="+05:00">UTC+05:00</option><option value="+06:00">UTC+06:00</option><option value="+07:00">UTC+07:00</option></select></label>
+          <label class="wide">Дата / период выгрузки <input name="unload_dates" placeholder="07–08.11.2026"></label>
+        </div></div>
+        <div class="field-section"><h3><span class="section-dot"></span> Груз</h3><div class="fields">
+          <label class="wide">Наименование груза <input name="cargo_name" required></label>
+          <label>Количество грузовых мест <input name="places" required inputmode="numeric"></label>
+          <label>Вес брутто, кг <input name="gross_kg" required inputmode="decimal"></label>
+          <label>Вес нетто, кг <input name="net_kg" required inputmode="decimal"></label>
+          <label>Объём, м³ <input name="volume_m3" inputmode="decimal" placeholder="Заполни при наличии"></label>
+        </div></div>
+        <div class="field-section"><h3><span class="section-dot"></span> Перевозчик</h3><div class="fields">
+          <label class="wide">ФИО перевозчика (ИП) <input name="carrier_name" required placeholder="Фамилия Имя Отчество"></label>
+          <label>ИНН перевозчика <input name="carrier_inn" required inputmode="numeric" minlength="12" maxlength="12"></label>
+          <label>ОГРНИП <input name="carrier_ogrnip" required inputmode="numeric" minlength="15" maxlength="15"></label>
+          <label class="wide">Адрес перевозчика <input name="carrier_address" placeholder="Юридический адрес"></label>
+          <label>Водитель <input name="driver_name"></label>
+          <label>Телефон водителя <input name="driver_phone"></label>
+          <label>Номер тягача <input name="truck_plate"></label>
+          <label>Номер прицепа <input name="trailer_plate"></label>
+          <label>Грузоподъёмность, т <input name="truck_tons" inputmode="decimal"></label>
+          <label>Вместимость, м³ <input name="truck_m3" inputmode="decimal"></label>
+          <label class="wide">Способ загрузки <input name="loading_type" placeholder="Задняя / боковая"></label>
+        </div></div>
+        <div class="field-section last-section"><h3><span class="section-dot"></span> Условия</h3><div class="fields">
+          <label>Сумма фрахта, ₽ <input name="payment_amount" inputmode="decimal"></label>
+          <label class="wide">Оплата по договору <textarea name="payment_terms" rows="2"></textarea></label>
+          <label class="wide">Дополнительные условия <textarea name="extra_notes" rows="2" placeholder="Можно оставить пустым"></textarea></label>
+        </div></div>
+        <div class="editor-bottom"><p>Файл создаётся только по нажатию кнопки. Перед подписанием проверь данные в Контуре.</p><button class="primary-button" type="submit" id="generate-btn">Скачать XML <span>↓</span></button></div>
+      </form>
+    </section>
+
+    <div class="empty-state" id="empty-state"><div class="empty-icon">✦</div><div><b>Здесь появится заполненная заявка</b><p>Загрузи два документа, чтобы продолжить</p></div></div>
+  </main>
+  <footer><div class="footer-content"><div>АВТОТРАНС-ЛОГИСТИКА <span>· служебный генератор XML</span></div><div>Контур.Логистика · ON_ZAKZVGO v5.01</div></div></footer>
+  <div class="toast hidden" id="toast" role="alert"></div>
+  <script src="/static/app.js" defer></script>
+</body></html>
