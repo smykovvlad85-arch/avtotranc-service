@@ -51,6 +51,10 @@ async def index(request:Request):
 async def etrn_page(request:Request):
     return templates.TemplateResponse(request,'etrn.html')
 
+@app.get('/sign-order',response_class=HTMLResponse)
+async def sign_order_page(request:Request):
+    return templates.TemplateResponse(request,'sign_order.html')
+
 @app.get('/health')
 async def health():
     return {'ok':True}
