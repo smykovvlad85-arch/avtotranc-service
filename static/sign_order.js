@@ -1,11 +1,13 @@
 'use strict';
 const $ = id=>document.getElementById(id);
-const storeKey='avtotrans:fo2-prefs:v1';
+const storeKey='avtotrans:fo2-prefs:v2';
+const DEFAULT_REGISTRY_NUMBER='GL-B044-00112-00/00035021';
+const DEFAULT_REGISTRATION_DATE='21.05.2026';
 let routes={};
 function notify(message,bad=false){const el=$('toast');el.textContent=message;el.classList.toggle('error',bad);el.classList.remove('hidden');clearTimeout(window.foToastTimer);window.foToastTimer=setTimeout(()=>el.classList.add('hidden'),4500)}
 function settings(){try{return JSON.parse(localStorage.getItem(storeKey)||'{}')}catch(e){return {}}}
 function persist(){try{localStorage.setItem(storeKey,JSON.stringify({reg:$('fo-reg').value,date:$('fo-date').value,count:Number($('fo-count').value)||5}))}catch(e){notify('Не удалось сохранить сведения в браузере',true)}}
-const saved=settings();$('fo-reg').value=saved.reg||'';$('fo-date').value=saved.date||'';$('fo-count').value=saved.count||5;
+const saved=settings();$('fo-reg').value=saved.reg||DEFAULT_REGISTRY_NUMBER;$('fo-date').value=saved.date||DEFAULT_REGISTRATION_DATE;$('fo-count').value=saved.count||5;
 function count(){const n=Math.round(Number($('fo-count').value)||1);return Math.max(1,Math.min(30,n))}
 function refreshRoutes(){
  const target=count();const parent=$('fo-routes');
