@@ -1,0 +1,16 @@
+@font-face { font-family: ServiceIcons; src: url("service-icons.woff") format("woff"); font-display: block; }
+.icon { font: normal normal 1em/1 ServiceIcons; display: inline-block; flex: 0 0 auto; speak: never; }
+.icon-phone::before { content: "\f03f2"; }
+.icon-route::before { content: "\f0d20"; }
+.icon-calendar::before { content: "\f0e18"; }
+.icon-document::before { content: "\f09ee"; }
+.icon-dispatch::before { content: "\f129b"; }
+.icon-check::before { content: "\f012c"; }
+.icon-next::before { content: "\f0054"; }
+.icon-down::before { content: "\f0045"; }
+.icon-up::before { content: "\f005d"; }
+.icon-external::before { content: "\f005c"; }
+.icon-menu::before { content: "\f035c"; }
+.icon-close::before { content: "\f0156"; }
+.icon-scale::before { content: "\f05a1"; }
+.icon-package::before { content: "\f03d7"; }
