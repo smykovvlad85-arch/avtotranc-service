@@ -31,6 +31,62 @@
   <link rel="preload" href="assets/magistral.webp" as="image" type="image/webp">
   <link rel="stylesheet" href="assets/icons.css">
   <link rel="stylesheet" href="style.css">
+  <style>
+    .analytics-notice {
+      background: #f1f6f5;
+      border-bottom: 1px solid #d6e1df;
+    }
+
+    .analytics-notice[hidden] {
+      display: none;
+    }
+
+    .analytics-inner {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      padding-block: 10px;
+    }
+
+    .analytics-inner p {
+      flex: 1 1 340px;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .analytics-inner a {
+      text-decoration: underline;
+    }
+
+    .analytics-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .analytics-actions button,
+    .analytics-settings {
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      min-height: 44px;
+    }
+
+    .analytics-actions button {
+      background: white;
+      border: 1px solid #a3b5b2;
+      border-radius: 5px;
+      padding: 0 12px;
+    }
+
+    .analytics-settings {
+      background: none;
+      border: 0;
+      padding: 0;
+      text-decoration: underline;
+    }
+  </style>
   <script src="menu.js" defer></script>
 </head>
 <body id="top">
@@ -67,6 +123,16 @@
       </div>
     </div>
   </header>
+
+  <aside class="analytics-notice" id="analytics-notice" aria-label="Аналитика сайта" hidden>
+    <div class="container analytics-inner">
+      <p>Яндекс Метрика помогает нам считать посещения сайта и нажатия на телефон. При согласии данные об использовании сайта передаются Яндексу. <a href="https://yandex.ru/legal/confidential/ru/" target="_blank" rel="noopener">Политика Яндекса</a></p>
+      <div class="analytics-actions">
+        <button type="button" id="analytics-allow">Разрешить</button>
+        <button type="button" id="analytics-decline">Отклонить</button>
+      </div>
+    </div>
+  </aside>
 
   <main id="content">
     <section class="hero" aria-labelledby="hero-title">
@@ -184,6 +250,7 @@
   <footer class="footer">
     <div class="container footer-inner">
       <span>ООО «Автотранс-Логистика»</span>
+      <button type="button" class="analytics-settings" id="analytics-settings" aria-controls="analytics-notice" aria-expanded="false" hidden>Настройки аналитики</button>
       <a href="#top">Наверх <span class="icon icon-up" aria-hidden="true"></span></a>
     </div>
   </footer>
@@ -193,5 +260,93 @@
       <strong><span class="icon icon-phone" aria-hidden="true"></span>+7 920 518-56-56</strong>
     </a>
   </div>
+  <script id="site-analytics">
+    (() => {
+      const counterId = 114684292;
+      const preferenceKey = 'avtotranc.analyticsConsent';
+      const notice = document.getElementById('analytics-notice');
+      const allowButton = document.getElementById('analytics-allow');
+      const declineButton = document.getElementById('analytics-decline');
+      const settings = document.getElementById('analytics-settings');
+      let analyticsEnabled = false;
+
+      function startAnalytics() {
+        if (analyticsEnabled) {
+          return;
+        }
+
+        analyticsEnabled = true;
+        window.ym = window.ym || function () {
+          (window.ym.a = window.ym.a || []).push(arguments);
+        };
+        window.ym.l = Date.now();
+
+        const tag = document.createElement('script');
+        tag.async = true;
+        tag.src = 'https://mc.yandex.ru/metrika/tag.js?id=' + counterId;
+        document.head.appendChild(tag);
+        window.ym(counterId, 'init', {
+          ssr: true,
+          referrer: document.referrer,
+          url: location.href,
+          accurateTrackBounce: true
+        });
+      }
+
+      function showNotice(visible) {
+        notice.hidden = !visible;
+        settings.setAttribute('aria-expanded', String(visible));
+      }
+
+      function savePreference(preference) {
+        try {
+          localStorage.setItem(preferenceKey, preference);
+        } catch {
+          // The choice also works for the current page when storage is unavailable.
+        }
+
+        showNotice(false);
+        if (preference === 'granted') {
+          startAnalytics();
+        } else if (analyticsEnabled) {
+          analyticsEnabled = false;
+          location.reload();
+        }
+      }
+
+      let preference;
+      try {
+        preference = localStorage.getItem(preferenceKey);
+      } catch {
+        // The visitor can still make a choice for the current page.
+      }
+
+      settings.hidden = false;
+      if (preference === 'granted') {
+        startAnalytics();
+      } else if (preference !== 'denied') {
+        showNotice(true);
+      }
+
+      allowButton.addEventListener('click', () => savePreference('granted'));
+      declineButton.addEventListener('click', () => savePreference('denied'));
+      settings.addEventListener('click', () => {
+        showNotice(notice.hidden);
+        if (!notice.hidden) {
+          allowButton.focus();
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        if (
+          analyticsEnabled &&
+          event.target instanceof Element &&
+          event.target.closest('a[href^="tel:"]')
+        ) {
+          window.ym(counterId, 'reachGoal', 'phone_click');
+        }
+      }, { capture: true });
+    })();
+  </script>
 </body>
 </html>
